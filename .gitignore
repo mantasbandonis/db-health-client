@@ -107,3 +107,4 @@ credentials.js
 .deployment
 .DS_Store
 .vscode/settings.json
+database.json
