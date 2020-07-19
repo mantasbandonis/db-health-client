@@ -1,11 +1,10 @@
 const cosmos = require("@azure/cosmos");
 const express = require("express")
-
+const credentials = require("./credentials.js");
 //This index.js is the Servers javascript file. The client never sees this code
 //ATTENTION YOU need test data to make it work - see addition data.json file
 
 var app = express();
-//app.use(express.static('public'));
 
 //global database vars
 // Database and container IDs
@@ -13,8 +12,8 @@ const databaseId = "ToDoList";
 const containerId = "Items";
 
 // Configure database access URI and primary key (enter your COSMOS DB values here xxxxx)
-const endpoint = "https://dbsm.documents.azure.com:443/";
-const authKey = "pVMzFbxG3nsLkjWvxNmEpLwNEfRwE8fw9JFKwraacZagAZX4N9jyiQJAFvppfqrSiJdDzDmk1LLRUX3hlzUMPw==";
+const endpoint = credentials.endpoint;
+const authKey = credentials.authKey;
 
 
 var dbResponse;
@@ -37,6 +36,14 @@ app.get('/rest/users', async function (req, res) {
 	res.json(sqlResult);
 });
 
+
+// Creates a random user session by fetching the users
+// and randomly picking one element from the array
+// the we select the latest session to get the highest session id and
+// increment it by one. Finally we create a new session with session 
+// data for the selected user and return the random user and newly
+// generated session as json to display it in the frontend toast 
+// message
 app.post('/rest/create-random-session', async function (req, res) {
 	const sqlStatement = "SELECT * FROM User u WHERE u.table=\"user\"";
 	const sqlResult = await queryDb(sqlStatement);
@@ -81,21 +88,20 @@ app.post('/rest/create-random-session', async function (req, res) {
 });
 
 app.get('/rest/usersessions/:id/details', async function (req, res) {
-	var sqlStmtSessionData = 'SELECT * FROM SessionData sd WHERE sd.sessionid=@sessionId AND sd.table=\"sessiondata\"';
-	var sqlResSessionData = await queryDb(sqlStmtSessionData, [{ name: "@sessionId", value: parseInt(req.params.id, 10) }]);
+	const sqlStmtSessionData = 'SELECT * FROM SessionData sd WHERE sd.sessionid=@sessionId AND sd.table=\"sessiondata\"';
+	const sqlResSessionData = await queryDb(sqlStmtSessionData, [{ name: "@sessionId", value: parseInt(req.params.id, 10) }]);
 	res.json(sqlResSessionData);
 })
 
 app.get('/rest/usersessions/latest', async function (req, res) {
-	var sqlStmtSessionData = 'SELECT * FROM Session s WHERE s.table=\"session\" ORDER BY s.sessionid DESC OFFSET 0 LIMIT 1';
-	var sqlResSessionData = await queryDb(sqlStmtSessionData);
+	const sqlStmtSessionData = 'SELECT * FROM Session s WHERE s.table=\"session\" ORDER BY s.sessionid DESC OFFSET 0 LIMIT 1';
+	const sqlResSessionData = await queryDb(sqlStmtSessionData);
 	res.json(sqlResSessionData[0]);
 })
 
 //start the server
 app.listen(3000, function () {
 	console.log('Example app listening on port 3000!');
-
 });
 
 async function initDb() {
@@ -141,5 +147,7 @@ async function queryDb(sqlQueryStr, parameters) {
 			return null;
 			//res.status(500).send("Error with database query: " + error.body);
 		}
+	}else{
+		return null;
 	}
 }

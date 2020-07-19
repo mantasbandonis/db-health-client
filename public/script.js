@@ -1,11 +1,13 @@
 //document ready function - building our house (client side)
 
+// Calls the create random session post api and displays
+// a bootstrap toast message containing the newly created session and random user
 function generateRandomData(){
   fetch('/rest/create-random-session', {
     method: 'POST'})
     .then(response => response.json())
     .then(data => {
-      const toast = $(`<div class="toast" style="position: absolute; top: 20px; right: 20px;" data-delay="2000">
+      const toast = $(`<div class="toast" style="position: absolute; top: 20px; right: 20px;" data-delay="3000">
       <div class="toast-header">
           <strong class="mr-auto">Information</strong>
           <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
@@ -22,11 +24,15 @@ function generateRandomData(){
 }
 
 $(function () {
+  // Binds the class to the on click event
   $("#add-random-data").on('click', generateRandomData);
 
+  // Using fetch api to fetch all users from the /users endpoint
   fetch('/rest/users')
     .then(response => response.json())
     .then(data => {
+      // We create the table dynamically and append a hidden row for the sessions
+      // then we use bootstrap collapse functionality to display/hide the session data
       const tBody = $('#dynamic-body');
       data.forEach(p => {
         const actualRow = $(`<tr class="accordion-toggle">
@@ -45,6 +51,8 @@ $(function () {
 					        	</div> 
       </td></tr>`);
 
+      // on opening a collapsible region we show a loading spinner first
+      // the spinner gets then replaced with the data we loaded asynchronously
         hiddenRow.on('show.bs.collapse', function (e) {
           if (e.target.id.startsWith("sessions")) {
             $(this).find(`#${e.target.id} .session-data`).html(`<div class="spinner-border" role="status">
@@ -57,6 +65,11 @@ $(function () {
           }
 
         })
+        // When the collapse region is fully opened we make
+        // an ajax call (again using fetch api) to fetch the sessions
+        // for the specific user and build dynamically create
+        // an html ol/ul list using jQuery. We do the same
+        // for the session details
         hiddenRow.on('shown.bs.collapse', function (e) {
           if (e.target.id.startsWith("sessions")) {
             const ol = $(this).find('.session-data');
