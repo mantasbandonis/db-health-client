@@ -108,3 +108,4 @@ credentials.js
 .DS_Store
 .vscode/settings.json
 database.json
+credentials.js
